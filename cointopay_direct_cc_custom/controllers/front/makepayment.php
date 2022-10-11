@@ -27,39 +27,36 @@
 /**
  * @since 1.5.0
  */
- 
+
 require_once(_PS_MODULE_DIR_ . '/cointopay_direct_cc_custom/vendor/cointopay/init.php');
 require_once(_PS_MODULE_DIR_ . '/cointopay_direct_cc_custom/vendor/version.php');
 
 class Cointopay_Direct_Cc_CustomMakepaymentModuleFrontController extends ModuleFrontController
 {
-	public function postProcess()
-    {	
-		$internal_order_id = $_GET['internal_order_id'];
-		if(!empty($internal_order_id))
-		{
-			$this->generatePayment($internal_order_id);
-		} 
-		else
-		{
-			die('Invalid Order ID.');
-		}
+    public function postProcess()
+    {
+        $internal_order_id = $_GET['internal_order_id'];
+        if (!empty($internal_order_id)) {
+            $this->generatePayment($internal_order_id);
+        } else {
+            die('Invalid Order ID.');
+        }
     }
     public function generatePayment($internal_order_id)
-    {	
-		$merchant_id = Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_MERCHANT_ID');
+    {
+        $merchant_id = Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_MERCHANT_ID');
         $security_code = Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_SECURITY_CODE');
         $user_currency = Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_CRYPTO_CURRENCY');
         $selected_currency = (isset($user_currency) && !empty($user_currency)) ? $user_currency : 1;
-		$link = new Link();
-		//$currency = new CurrencyCore($order->id_currency);
-		$total = (float)$_GET['amount'];
-		//$total= $total;
+        $link = new Link();
+        //$currency = new CurrencyCore($order->id_currency);
+        $total = (float)$_GET['amount'];
+        //$total= $total;
         $ctpConfig = array(
-          'merchant_id' => $merchant_id,
-          'security_code'=>$security_code,
-          'selected_currency'=>$selected_currency,
-          'user_agent' => 'Cointopay - Prestashop v'._PS_VERSION_.' Extension v'.COINTOPAY_DIRECT_CC_CUSTOM_PRESTASHOP_EXTENSION_VERSION
+            'merchant_id' => $merchant_id,
+            'security_code' => $security_code,
+            'selected_currency' => $selected_currency,
+            'user_agent' => 'Cointopay - Prestashop v' . _PS_VERSION_ . ' Extension v' . COINTOPAY_DIRECT_CC_CUSTOM_PRESTASHOP_EXTENSION_VERSION
         );
 
         \Cointopay_Direct_Cc_Custom\Cointopay_Direct_Cc_Custom::config($ctpConfig);
@@ -70,25 +67,26 @@ class Cointopay_Direct_Cc_CustomMakepaymentModuleFrontController extends ModuleF
             'cancel_url'       => $this->flashEncode($this->context->link->getModuleLink('cointopay_direct_cc_custom', 'cancel')),
             'callback_url'     => $this->flashEncode($this->context->link->getModuleLink('cointopay_direct_cc_custom', 'callback')),
             'title'            => Configuration::get('PS_SHOP_NAME') . ' Order #' . $internal_order_id,
-            'selected_currency'=> $selected_currency
+            'selected_currency' => $selected_currency
         ));
-         
+
         if (isset($order)) {
 
-		preg_match_all($pattern, $order->PaymentDetailCConly, $matches); 
-		$regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
-	    if(preg_match_all("/$regexp/siU", $order->PaymentDetailCConly, $matches, PREG_SET_ORDER)) {
-			foreach($matches as $key=>$match) {
-			if ($key == 1) {
-				@header("Location: ".$match[2]);die;
-			}
-			}
-	    }
-		}
-		 die();
+            preg_match_all($pattern, $order->PaymentDetailCConly, $matches);
+            $regexp = "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>";
+            if (preg_match_all("/$regexp/siU", $order->PaymentDetailCConly, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $key => $match) {
+                    if ($key == 1) {
+                        @header("Location: " . $match[2]);
+                        die;
+                    }
+                }
+            }
+        }
+        die();
     }
-	
-	/**
+
+    /**
      * URL encode to UTF-8
      *
      * @param $input
@@ -106,14 +104,14 @@ class Cointopay_Direct_Cc_CustomMakepaymentModuleFrontController extends ModuleF
      */
     public function currencyCode($isoCode)
     {
-        $currencyCode='';
+        $currencyCode = '';
 
         if (isset($isoCode) && ($isoCode == 'RUB')) {
-            $currencyCode='RUR';
+            $currencyCode = 'RUR';
         } else {
-            $currencyCode= $isoCode;
+            $currencyCode = $isoCode;
         }
-        
+
         return $currencyCode;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace cointopay_direct_cc_custom\Merchant;
 
 use cointopay_direct_cc_custom\Cointopay_Direct_Cc_Custom;
@@ -18,7 +19,7 @@ class Order extends Merchant
         $order = Cointopay_Direct_Cc_Custom::request('orders', 'GET', $params, $authentication);
         return new self($order);
     }
-	public static function ValidateOrder($params, $options = array(), $authentication = array())
+    public static function ValidateOrder($params, $options = array(), $authentication = array())
     {
         $order = Cointopay_Direct_Cc_Custom::request('validation', 'GET', $params, $authentication);
         return new self($order);
