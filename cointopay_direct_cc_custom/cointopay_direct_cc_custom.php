@@ -76,7 +76,7 @@ class Cointopay_Direct_Cc_Custom extends PaymentModule
 
         parent::__construct();
 
-        $this->displayName = 'Pay via  Credit Card';
+        $this->displayName = 'Cointopay Direct CC Custom';
         $this->description = $this->l('Accept Bitcoin and other cryptocurrencies as a payment method with Cointopay');
         $this->confirmUninstall = $this->l('Are you sure you want to delete your details?');
 
