@@ -96,6 +96,39 @@ class Cointopay_Direct_Cc_Custom extends PaymentModule
             return false;
         }
 
+        $newStates = [
+            [
+                'name' => 'Waiting card payment',
+                'color' => 'RoyalBlue',
+                'config' => 'COINTOPAY_DIRECT_CC_WAITING',
+            ],
+            [
+                'name' => 'Pay via Visa / Mastercard payment expired',
+                'color' => '#DC143C',
+                'config' => 'COINTOPAY_DIRECT_CC_EXPIRED',
+            ],
+            [
+                'name' => 'Pay via Visa / Mastercard invoice is invalid',
+                'color' => '#8f0621',
+                'config' => 'COINTOPAY_DIRECT_CC_INVALID',
+            ],
+            [
+                'name' => 'Pay via Visa / Mastercard not enough',
+                'color' => '#32CD32',
+                'config' => 'COINTOPAY_DIRECT_CC_PNOTENOUGH',
+            ],
+        ];
+
+        $existingStatesNames = OrderState::getOrderStates(1);
+        $existingStatesNames = empty($existingStatesNames) ? [] : array_column($existingStatesNames, 'name');
+
+        foreach ($newStates as $state) {
+            // create a new state if not already exists
+            if (!in_array($state['name'], $existingStatesNames)) {
+                $this->createOrderState($state);
+            }
+        }
+
         $order_ctp_pending = new OrderState();
         $order_ctp_pending->module_name = $this->name;
         $order_ctp_pending->name = array_fill(0, 10, 'Waiting card payment');
@@ -190,27 +223,33 @@ class Cointopay_Direct_Cc_Custom extends PaymentModule
             }
         }
 
-
         return true;
     }
 
     public function uninstall()
     {
-        $order_not_enough = new OrderState(Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_PNOTENOUGH'));
-        $order_state_expired = new OrderState(Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_EXPIRED'));
-        $order_state_invalid = new OrderState(Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_INVALID'));
-        $order_state_pending = new OrderState(Configuration::get('COINTOPAY_DIRECT_CC_CUSTOM_PENDING'));
+        return (parent::uninstall());
+    }
 
-        return (Configuration::deleteByName('COINTOPAY_DIRECT_CC_CUSTOM_MERCHANT_ID') &&
-            Configuration::deleteByName('COINTOPAY_DIRECT_CC_CUSTOM_SECURITY_CODE') &&
-            Configuration::deleteByName('COINTOPAY_DIRECT_CC_CUSTOM_DISPLAY_NAME') &&
-            Configuration::deleteByName('COINTOPAY_DIRECT_CC_CUSTOM_CRYPTO_CURRENCY') &&
-            $order_not_enough->delete() &&
-            $order_state_expired->delete() &&
-            $order_state_invalid->delete() &&
-            $order_state_pending->delete() &&
-            parent::uninstall()
-        );
+    protected function createOrderState($state)
+    {
+        $orderState = new OrderState();
+        $orderState->module_name = 'cointopay_cc';
+        $orderState->name = array_fill(0, 10, $state['name']);
+        $orderState->send_email = 0;
+        $orderState->invoice = 0;
+        $orderState->color = $state['color'];
+        $orderState->unremovable = false;
+        $orderState->logable = 0;
+
+        if ($orderState->add()) {
+            copy(
+                _PS_ROOT_DIR_ . '/modules/cointopay_direct_cc_custom/views/img/logo.png',
+                _PS_ROOT_DIR_ . '/img/os/' . (int)$orderState->id . '.gif'
+            );
+        }
+
+        Configuration::updateValue($state['config'], $orderState->id);
     }
 
     public function getContent()
